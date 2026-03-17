@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#F2F2F7" id="theme-color-meta">
+    <title>DevLearn - Web Mastery</title>
+
+    <!-- Google Fonts: Poppins & Kavoon -->
+    <link href="https://fonts.googleapis.com/css2?family=Kavoon&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- SweetAlert2 & IziToast CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* ================= COLOR SYSTEM & VARIABLES ================= */
+        :root {
+            /* Custom Palette */
+            --electric-blue: #00F5FF;
+            --lime-punch: #DFFF00;
+            --hot-magenta: #FF007F;
+            
+            /* Light Theme (iOS Standard) */
+            --bg-base: #F2F2F7;
+            --bg-card: #FFFFFF;
+            --text-main: #1C1C1E;
+            --text-muted: #8E8E93;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --border-color: rgba(60, 60, 67, 0.1);
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* No glow, standard soft shadow */
+            --code-bg: #1E1E1E;
+            --code-text: #E5E5EA;
+        }[data-theme="dark"] {
+            /* Dark Theme (iOS Standard) */
+            --bg-base: #000000;
+            --bg-card: #1C1C1E;
+            --text-main: #FFFFFF;
+            --text-muted: #EBEBF599;
+            --glass-bg: rgba(28, 28, 30, 0.85);
+            --border-color: rgba(84, 84, 88, 0.3);
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ================= RESET & BASE ================= */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: 'Poppins', -apple-system, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+            line-height: 1.5;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* Typography */
+        h1, h2, h3 { font-weight: 700; color: var(--text-main); }
+        .font-kavoon { font-family: 'Kavoon', cursive; font-weight: normal; }
+        p { margin-bottom: 12px; }
+        
+        /* Highlight Text */
+        .txt-blue { color: var(--electric-blue); }
+        .txt-magenta { color: var(--hot-magenta); }
+        .txt-lime { color: var(--lime-punch); }
+
+        /* ================= LAYOUT ================= */
+        /* Header (iOS Glass) */
+        header {
+            position: fixed; top: 0; left: 0; right: 0; height: 60px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; z-index: 100;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-bottom: 0.5px solid var(--border-color);
+            padding-top: env(safe-area-inset-top);
+        }
+        
+        .logo { font-size: 24px; color: var(--text-main); display: flex; align-items: center; gap: 8px;}
+        .icon-btn { 
+            background: none; border: none; color: var(--text-main); 
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Main Content */
+        main {
+            padding-top: calc(70px + env(safe-area-inset-top));
+            padding-bottom: calc(90px + env(safe-area-inset-bottom));
+            min-height: 100vh;
+        }
+
+        .page { display: none; padding: 0 16px; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Fullscreen Practice Container */
+        #practice { padding: 0; height: calc(100vh - 80px); overflow: hidden; }
+        #editor-frame { width: 100%; height: 100%; border: none; }
+
+        /* Bottom Tab Bar (iOS Style) */
+        nav.bottom-tabs {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 80px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-top: 0.5px solid var(--border-color);
+            display: flex; justify-content: space-around; align-items: flex-start;
+            padding-top: 10px; padding-bottom: env(safe-area-inset-bottom); z-index: 100;
+        }
+        
+        .tab {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            color: var(--text-muted); cursor: pointer; transition: color 0.2s;
+            width: 20%;
+        }
+        .tab span { font-size: 10px; font-weight: 500; }
+        .tab svg { width: 24px; height: 24px; }
+        .tab.active { color: var(--hot-magenta); }
+
+        /* ================= UI COMPONENTS ================= */
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        /* Tags Table */
+        .tag-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 14px;}
+        .tag-table th, .tag-table td { text-align: left; padding: 12px 8px; border-bottom: 0.5px solid var(--border-color); }
+        .tag-table th { color: var(--text-muted); font-weight: 500; }
+        
+        /* Code Blocks */
+        .code-container {
+            background: var(--code-bg); border-radius: 12px; margin: 15px 0; overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        .code-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 12px; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .mac-dots { display: flex; gap: 6px; }
+        .mac-dots div { width: 10px; height: 10px; border-radius: 50%; }
+        .mac-dots .red { background: #FF5F56; } .mac-dots .yellow { background: #FFBD2E; } .mac-dots .green { background: #27C93F; }
+        
+        .copy-btn {
+            background: none; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .copy-btn:hover { color: var(--electric-blue); }
+        
+        pre { padding: 16px; overflow-x: auto; color: var(--code-text); font-family: monospace; font-size: 13px; line-height: 1.4; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 14px 24px; border-radius: 14px; font-weight: 600; font-size: 16px;
+            cursor: pointer; transition: opacity 0.2s, transform 0.1s; border: none;
+            width: 100%; color: #000; box-shadow: var(--shadow);
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-lime { background: var(--lime-punch); }
+        .btn-blue { background: var(--electric-blue); }
+        .btn-magenta { background: var(--hot-magenta); color: #FFF; }
+
+        /* Floating Fullscreen Button */
+        .fab-fullscreen {
+            position: fixed;
+            bottom: 100px; /* Above the bottom navigation */
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 25px; /* Perfect circle */
+            background-color: var(--lime-punch);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            z-index: 1000;
+            transition: transform 0.2s ease;
+        }
+        .fab-fullscreen:active {
+            transform: scale(0.9);
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="logo font-kavoon">
+            <i data-lucide="code-2" style="color: var(--electric-blue);"></i> DevLearn
+        </div>
+        <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()">
+            <i data-lucide="sun"></i>
+        </button>
+    </header>
+
+    <!-- Main Content (SPA Pages) -->
+    <main>
+        
+        <!-- 1. HOME PAGE -->
+        <section id="home" class="page active">
+            <div class="card" style="text-align: center; padding: 40px 20px;">
+                <h1 class="font-kavoon" style="font-size: 2.5rem; margin-bottom: 10px;">Master <span class="txt-magenta">Web Dev</span></h1>
+                <p style="color: var(--text-muted);">The ultimate iOS-style guide to learning HTML, CSS, and JavaScript.</p>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn btn-lime" onclick="nav('html')">Start Learning</button>
+                    <button class="btn btn-blue" onclick="nav('practice')"><i data-lucide="play"></i> Editor</button>
+                </div>
+            </div>
+
+            <h2 style="font-size: 20px; margin: 25px 0 10px 5px;">Curriculum</h2>
+            
+            <div class="card" onclick="nav('html')" style="cursor: pointer; display: flex; align-items: center; gap: 15px;">
+                <div style="background: var(--hot-magenta); padding: 12px; border-radius: 12px; color: #FFF;">
+                    <i data-lucide="file-code-2"></i>
+                </div>
+                <div>
+                    <h3>HTML Foundation</h3>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-muted);">Tags, Structure, Forms</p>
+                </div>
+            </div>
+
+            <div class="card" onclick="nav('css')" style="cursor: pointer; display: flex; align-items: center; gap: 15px;">
+                <div style="background: var(--electric-blue); padding: 12px; border-radius: 12px; color: #000;">
+                    <i data-lucide="palette"></i>
+                </div>
+                <div>
+                    <h3>CSS Styling</h3>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-muted);">Design, Layout, Flexbox</p>
+                </div>
+            </div>
+
+            <div class="card" onclick="nav('js')" style="cursor: pointer; display: flex; align-items: center; gap: 15px;">
+                <div style="background: var(--lime-punch); padding: 12px; border-radius: 12px; color: #000;">
+                    <i data-lucide="braces"></i>
+                </div>
+                <div>
+                    <h3>JavaScript Logic</h3>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-muted);">DOM, Events, Functions</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. HTML PAGE -->
+        <section id="html" class="page">
+            <h1 class="font-kavoon" style="font-size: 2rem; margin-bottom: 15px;">HTML <span class="txt-magenta">Skeleton</span></h1>
+            
+            <div class="card">
+                <h3>HTML5 Boilerplate</h3>
+                <p style="font-size: 14px; color: var(--text-muted);">The basic structure required for every webpage.</p>
+                
+                <div class="code-container">
+                    <div class="code-header">
+                        <div class="mac-dots"><div class="red"></div><div class="yellow"></div><div class="green"></div></div>
+                        <button class="copy-btn" onclick="copyCode('html-code-1')"><i data-lucide="copy"></i></button>
+                    </div>
+                    <pre id="html-code-1"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Hello World&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Essential Tags Directory</h3>
+                <table class="tag-table">
+                    <tr><th>Tag</th><th>Description</th></tr>
+                    <tr><td><code>&lt;h1&gt; - &lt;h6&gt;</code></td><td>Headings (h1 is largest)</td></tr>
+                    <tr><td><code>&lt;p&gt;</code></td><td>Paragraph text block</td></tr>
+                    <tr><td><code>&lt;a href=""&gt;</code></td><td>Hyperlink/Anchor</td></tr>
+                    <tr><td><code>&lt;img src=""&gt;</code></td><td>Image embed (self-closing)</td></tr>
+                    <tr><td><code>&lt;div&gt;</code></td><td>Block-level container</td></tr>
+                    <tr><td><code>&lt;span&gt;</code></td><td>Inline text container</td></tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3>Forms & Inputs</h3>
+                <p style="font-size: 14px; color: var(--text-muted);">Used to collect user data.</p>
+                <div class="code-container">
+                    <div class="code-header">
+                        <div class="mac-dots"><div class="red"></div><div class="yellow"></div><div class="green"></div></div>
+                        <button class="copy-btn" onclick="copyCode('html-code-2')"><i data-lucide="copy"></i></button>
+                    </div>
+                    <pre id="html-code-2"><code>&lt;form action="/submit"&gt;
+    &lt;label for="name"&gt;Name:&lt;/label&gt;
+    &lt;input type="text" id="name" required&gt;
+    
+    &lt;button type="submit"&gt;Send&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+                </div>
+            </div>
+            <button class="btn btn-blue" onclick="nav('practice')" style="margin-bottom: 20px;">Practice HTML Now</button>
+        </section>
+
+        <!-- 3. CSS PAGE -->
+        <section id="css" class="page">
+            <h1 class="font-kavoon" style="font-size: 2rem; margin-bottom: 15px;">CSS <span class="txt-blue">Design</span></h1>
+
+            <div class="card">
+                <h3>How to target elements (Selectors)</h3>
+                <p style="font-size: 14px; color: var(--text-muted);">Connect your styles to HTML tags.</p>
+                <div class="code-container">
+                    <div class="code-header">
+                        <div class="mac-dots"><div class="red"></div><div class="yellow"></div><div class="green"></div></div>
+                        <button class="copy-btn" onclick="copyCode('css-code-1')"><i data-lucide="copy"></i></button>
+                    </div>
+                    <pre id="css-code-1"><code>/* Element Selector */
+p { color: blue; }
+
+/* Class Selector (uses dot) */
+.btn { border-radius: 8px; }
+
+/* ID Selector (uses hash) */
+#header { background: black; }</code></pre>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>The Box Model</h3>
+                <p style="font-size: 14px; color: var(--text-muted);">Every HTML element is a box. Understanding spacing is crucial.</p>
+                <table class="tag-table">
+                    <tr><th>Property</th><th>Description</th></tr>
+                    <tr><td><code>margin</code></td><td>Outer space, pushes elements away.</td></tr>
+                    <tr><td><code>border</code></td><td>The outline around the box.</td></tr>
+                    <tr><td><code>padding</code></td><td>Inner space, inside the box.</td></tr>
+                    <tr><td><code>width/height</code></td><td>The core content size.</td></tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3>Flexbox Layout (1D)</h3>
+                <p style="font-size: 14px; color: var(--text-muted);">Align items easily in rows or columns.</p>
+                <div class="code-container">
+                    <div class="code-header">
+                        <div class="mac-dots"><div class="red"></div><div class="yellow"></div><div class="green"></div></div>
+                        <button class="copy-btn" onclick="copyCode('css-code-2')"><i data-lucide="copy"></i></button>
+                    </div>
+                    <pre id="css-code-2"><code>.container {
+    display: flex;
+    justify-content: center; /* X-axis */
+    align-items: center;     /* Y-axis */
+    gap: 10px;               /* Space */
+}</code></pre>
+                </div>
+            </div>
+            <button class="btn btn-lime" onclick="nav('practice')" style="margin-bottom: 20px;">Practice CSS Now</button>
+        </section>
+
+        <!-- 4. JS PAGE -->
+        <section id="js" class="page">
+            <h1 class="font-kavoon" style="font-size: 2rem; margin-bottom: 15px;">JS <span class="txt-lime">Logic</span></h1>
+
+            <div class="card">
+                <h3>Variables & Data Types</h3>
+                <p style="font-size: 14px; color: var(--text-muted);">Store information in memory.</p>
+                <div class="code-container">
+                    <div class="code-header">
+                        <div class="mac-dots"><div class="red"></div><div class="yellow"></div><div class="green"></div></div>
+                        <button class="copy-btn" onclick="copyCode('js-code-1')"><i data-lucide="copy"></i></button>
+                    </div>
+                    <pre id="js-code-1"><code>let name = "Apple"; // String (changes)
+const pi = 3.14;    // Number (constant)
+let isTrue = true;  // Boolean
+
+let list =["A", "B"]; // Array
+let obj = { x: 1 };    // Object</code></pre>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>DOM Manipulation</h3>
+                <p style="font-size: 14px; color: var(--text-muted);">How JavaScript talks to HTML.</p>
+                <div class="code-container">
+                    <div class="code-header">
+                        <div class="mac-dots"><div class="red"></div><div class="yellow"></div><div class="green"></div></div>
+                        <button class="copy-btn" onclick="copyCode('js-code-2')"><i data-lucide="copy"></i></button>
+                    </div>
+                    <pre id="js-code-2"><code>// Select an element
+const title = document.querySelector("h1");
+
+// Change text
+title.innerText = "New Title!";
+
+// Change styles
+title.style.color = "red";</code></pre>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Events (Making it interactive)</h3>
+                <div class="code-container">
+                    <div class="code-header">
+                        <div class="mac-dots"><div class="red"></div><div class="yellow"></div><div class="green"></div></div>
+                        <button class="copy-btn" onclick="copyCode('js-code-3')"><i data-lucide="copy"></i></button>
+                    </div>
+                    <pre id="js-code-3"><code>const btn = document.getElementById("myBtn");
+
+btn.addEventListener("click", () => {
+    alert("Button was clicked!");
+});</code></pre>
+                </div>
+            </div>
+            <button class="btn btn-magenta" onclick="nav('practice')" style="margin-bottom: 20px;">Practice JS Now</button>
+        </section>
+
+        <!-- 5. PRACTICE (EDITOR) PAGE -->
+        <section id="practice" class="page" style="padding: 0;">
+            <!-- Embedding the requested editor -->
+            <iframe id="editor-frame" src="https://kushmil.github.io/Editor/" allow="clipboard-read; clipboard-write"></iframe>
+        </section>
+
+    </main>
+
+    <!-- Floating Fullscreen Button -->
+    <button class="fab-fullscreen" id="fullscreen-btn" onclick="toggleFullScreen()" aria-label="Toggle Fullscreen">
+        <i data-lucide="maximize"></i>
+    </button>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-tabs">
+        <div class="tab active" data-target="home" onclick="nav('home')">
+            <i data-lucide="home"></i>
+            <span>Home</span>
+        </div>
+        <div class="tab" data-target="html" onclick="nav('html')">
+            <i data-lucide="file-code-2"></i>
+            <span>HTML</span>
+        </div>
+        <div class="tab" data-target="css" onclick="nav('css')">
+            <i data-lucide="palette"></i>
+            <span>CSS</span>
+        </div>
+        <div class="tab" data-target="js" onclick="nav('js')">
+            <i data-lucide="braces"></i>
+            <span>JS</span>
+        </div>
+        <div class="tab" data-target="practice" onclick="nav('practice')">
+            <i data-lucide="play-circle"></i>
+            <span>Practice</span>
+        </div>
+    </nav>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/js/iziToast.min.js"></script>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // 1. Theme Logic (Sun/Moon Toggle)
+        function toggleTheme() {
+            const body = document.documentElement;
+            const icon = document.querySelector('#theme-toggle i');
+            const metaTheme = document.getElementById('theme-color-meta');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                icon.setAttribute('data-lucide', 'sun');
+                metaTheme.setAttribute('content', '#F2F2F7');
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                icon.setAttribute('data-lucide', 'moon');
+                metaTheme.setAttribute('content', '#000000');
+                localStorage.setItem('theme', 'dark');
+            }
+            lucide.createIcons();
+        }
+
+        // Load saved theme
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.querySelector('#theme-toggle i').setAttribute('data-lucide', 'moon');
+            document.getElementById('theme-color-meta').setAttribute('content', '#000000');
+        }
+
+        // 2. Fullscreen Toggle Logic
+        function toggleFullScreen() {
+            const doc = window.document;
+            const docEl = doc.documentElement;
+            const icon = document.querySelector('#fullscreen-btn i');
+
+            const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+            const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+            if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+                if(requestFullScreen) requestFullScreen.call(docEl);
+                icon.setAttribute('data-lucide', 'minimize');
+            } else {
+                if(cancelFullScreen) cancelFullScreen.call(doc);
+                icon.setAttribute('data-lucide', 'maximize');
+            }
+            lucide.createIcons(); // Refresh the icon
+        }
+
+        // 3. SPA Routing Logic
+        function nav(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show target page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Update Tab active state
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.tab[data-target="${pageId}"]`).classList.add('active');
+
+            // Scroll to top unless it's practice page (iframe)
+            if(pageId !== 'practice') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                // Show a sweet alert welcome when opening editor
+                if(!window.editorAlertShown) {
+                    Swal.fire({
+                        title: 'Live Editor',
+                        text: 'Practice your HTML, CSS, and JS live below!',
+                        icon: 'info',
+                        confirmButtonColor: 'var(--hot-magenta)',
+                        background: document.documentElement.getAttribute('data-theme') === 'dark' ? '#1C1C1E' : '#FFFFFF',
+                        color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#FFF' : '#000',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        customClass: { popup: 'card' }
+                    });
+                    window.editorAlertShown = true;
+                }
+            }
+        }
+
+        // 4. Copy Code Function
+        function copyCode(elementId) {
+            const textToCopy = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                iziToast.success({
+                    title: 'Copied!',
+                    message: 'Code copied to clipboard.',
+                    position: 'topCenter',
+                    theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light',
+                    backgroundColor: 'var(--electric-blue)',
+                    titleColor: '#000',
+                    messageColor: '#000',
+                    iconColor: '#000',
+                    timeout: 2000
+                });
+            });
+        }
+
+        // 5. PWA Setup (Manifest & Service Worker Mock)
+        const manifestData = {
+            name: "DevLearn Web Mastery",
+            short_name: "DevLearn",
+            start_url: ".",
+            display: "standalone",
+            background_color: "#F2F2F7",
+            theme_color: "#00F5FF",
+            icons:[{
+                src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300F5FF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='16 18 22 12 16 6'%3E%3C/polyline%3E%3Cpolyline points='8 6 2 12 8 18'%3E%3C/polyline%3E%3C/svg%3E",
+                sizes: "192x192",
+                type: "image/svg+xml"
+            }]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        const link = document.createElement('link');
+        link.rel = 'manifest'; link.href = manifestURL;
+        document.head.appendChild(link);
+
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('install', (e) => self.skipWaiting());
+                self.addEventListener('activate', (e) => self.clients.claim());
+                self.addEventListener('fetch', (e) => {});
+            `;
+            const swBlob = new Blob([swCode], {type: 'application/javascript'});
+            navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(()=>console.log("SW mock restricted."));
+        }
+    </script>
+</body>
+</html>
